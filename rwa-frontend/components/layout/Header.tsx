@@ -95,11 +95,9 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between px-4">
         {/* Logo and Navigation */}
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-3">
-            <Building2 className="h-8 w-8 text-primary" />
-            <div>
-              <h1 className="text-lg font-bold">RWA Investor</h1>
-              <p className="text-xs text-muted-foreground">Real World Assets</p>
+          <Link href="/" className="flex items-center gap-3">            <Building2 className="h-8 w-8 text-primary" />            <div>
+              <h1 className="text-lg font-bold">aCARtoken</h1>
+              <p className="text-xs text-muted-foreground">Tokenize Your Automotive Dreams</p>
             </div>
           </Link>
 

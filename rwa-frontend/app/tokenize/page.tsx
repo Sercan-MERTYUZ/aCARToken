@@ -1,229 +1,222 @@
 'use client';
 
 import { useState } from 'react';
-import { useWalletStore } from '@/stores/wallet';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { 
-  Building2, 
-  FileText, 
-  Shield, 
-  Clock,
-  Check,
-  ArrowRight,
+  Car, 
+  Truck,
+  Bike,
   ArrowLeft,
-  Upload,
-  AlertCircle,
-  DollarSign,
-  Users,
-  Briefcase,
-  Coins,
-  Calculator,
-  Info
+  ArrowRight,
+  Check,
+  Calendar,
+  Gauge,
+  FileText,
+  Coins
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/stellar';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
 
 const ASSET_TYPES = [
   {
-    id: 'real_estate',
-    name: 'Real Estate',
-    description: 'Residential, commercial, or industrial properties',
-    icon: Building2,
-    minValue: 100000,
-    examples: ['Apartment buildings', 'Office complexes', 'Warehouses', 'Retail spaces']
+    id: 'classic-cars',
+    name: 'Classic Cars',
+    description: 'Vintage and collectible automobiles',
+    icon: Car,
+    minValue: 25000,
+    examples: ['Classic sports cars', 'Vintage luxury cars', 'Historic vehicles', 'Rare models']
   },
   {
-    id: 'commodities',
-    name: 'Commodities',
-    description: 'Physical goods and precious metals',
-    icon: Coins,
+    id: 'fleet-vehicles',
+    name: 'Fleet Vehicles',
+    description: 'Commercial and rental fleet vehicles',
+    icon: Truck,
     minValue: 50000,
-    examples: ['Gold storage', 'Oil reserves', 'Agricultural products', 'Rare metals']
+    examples: ['Electric vehicle fleets', 'Commercial trucks', 'Rental car fleets', 'Delivery vehicles']
   },
   {
-    id: 'infrastructure',
-    name: 'Infrastructure',
-    description: 'Energy, transportation, and utility projects',
-    icon: Briefcase,
-    minValue: 500000,
-    examples: ['Solar farms', 'Wind turbines', 'Data centers', 'Transportation hubs']
+    id: 'micromobility',
+    name: 'Micromobility',
+    description: 'Urban mobility solutions',
+    icon: Bike,
+    minValue: 10000,
+    examples: ['E-scooter fleets', 'Bike sharing systems', 'Urban mobility services']
   }
 ];
 
-const TOKENIZATION_STEPS = [
+const STEPS = [
   {
     id: 1,
-    title: 'Asset Details',
-    description: 'Provide basic information about your asset'
+    name: 'Vehicle Information',
+    description: 'Enter basic vehicle details',
+    icon: Car
   },
   {
     id: 2,
-    title: 'Legal Documentation',
-    description: 'Upload required legal and ownership documents'
+    name: 'Technical Details',
+    description: 'Specifications and condition',
+    icon: Gauge
   },
   {
     id: 3,
-    title: 'Tokenization Structure',
-    description: 'Define token economics and distribution'
+    name: 'Documentation',
+    description: 'Upload required documents',
+    icon: FileText
   },
   {
     id: 4,
-    title: 'Compliance Setup',
-    description: 'Configure investor requirements and restrictions'
+    name: 'Token Economics',
+    description: 'Set token parameters',
+    icon: Coins
   },
   {
     id: 5,
-    title: 'Review & Deploy',
-    description: 'Review all details and deploy your token'
+    name: 'Review & Publish',
+    description: 'Final verification',
+    icon: Check
   }
 ];
 
-export default function TokenizePage() {
-  const { isConnected, address } = useWalletStore();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    // Step 1: Asset Details
+interface FormData {
+  assetType: string;
+  vehicleInfo: {
+    make: string;
+    model: string;
+    year: string;
+    vin: string;
+    currentOwner: string;
+    location: string;
+  };
+  technicalDetails: {
+    mileage: string;
+    condition: string;
+    lastService: string;
+    modifications: string;
+    specifications: string;
+  };
+  documentation: {
+    registrationDoc: File | null;
+    insuranceDoc: File | null;
+    serviceHistory: File | null;
+    photos: File[];
+  };
+  tokenEconomics: {
+    totalValue: string;
+    tokenSupply: string;
+    pricePerToken: string;
+    minimumInvestment: string;
+    tradingLockup: string;
+  };
+}
+
+export default function Tokenize() {
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState<FormData>({
     assetType: '',
-    assetName: '',
-    location: '',
-    description: '',
-    totalValue: '',
-    
-    // Step 2: Legal Documentation
-    ownershipProof: null as File | null,
-    valuation: null as File | null,
-    insurance: null as File | null,
-    
-    // Step 3: Tokenization Structure
-    tokenSymbol: '',
-    totalSupply: '',
-    pricePerToken: '',
-    minInvestment: '',
-    
-    // Step 4: Compliance
-    kycRequired: true,
-    accreditedOnly: false,
-    jurisdictionRestrictions: '',
-    
-    // Step 5: Launch settings
-    launchDate: '',
-    fundingGoal: '',
-    fundingDeadline: ''
+    vehicleInfo: {
+      make: '',
+      model: '',
+      year: '',
+      vin: '',
+      currentOwner: '',
+      location: ''
+    },
+    technicalDetails: {
+      mileage: '',
+      condition: '',
+      lastService: '',
+      modifications: '',
+      specifications: ''
+    },
+    documentation: {
+      registrationDoc: null,
+      insuranceDoc: null,
+      serviceHistory: null,
+      photos: []
+    },
+    tokenEconomics: {
+      totalValue: '',
+      tokenSupply: '',
+      pricePerToken: '',
+      minimumInvestment: '',
+      tradingLockup: ''
+    }
   });
 
-  const updateFormData = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const updateFormData = (section: keyof FormData, field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...(typeof prev[section] === 'object' && prev[section] !== null ? prev[section] : {}),
+        [field]: value
+      }
+    }));
   };
 
-  const nextStep = () => {
-    if (currentStep < TOKENIZATION_STEPS.length) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const calculateTokenomics = () => {
-    if (!formData.totalValue || !formData.totalSupply) return null;
-    
-    const totalVal = parseFloat(formData.totalValue);
-    const supply = parseFloat(formData.totalSupply);
-    const pricePerToken = totalVal / supply;
-    
-    return {
-      pricePerToken: pricePerToken.toFixed(2),
-      marketCap: totalVal,
-      minInvestmentTokens: formData.minInvestment ? Math.ceil(parseFloat(formData.minInvestment) / pricePerToken) : 0
-    };
-  };
-
-  const renderStepContent = () => {
-    switch (currentStep) {
+  const renderStep = () => {
+    switch (step) {
       case 1:
         return (
           <div className="space-y-6">
-            <div>
-              <Label className="text-base font-semibold mb-4 block">Asset Type</Label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {ASSET_TYPES.map((type) => {
-                  const Icon = type.icon;
-                  return (
-                    <Card 
-                      key={type.id}
-                      className={`cursor-pointer transition-all ${
-                        formData.assetType === type.id 
-                          ? 'ring-2 ring-primary bg-primary/5' 
-                          : 'hover:shadow-md'
-                      }`}
-                      onClick={() => updateFormData('assetType', type.id)}
-                    >
-                      <CardContent className="p-6 text-center">
-                        <Icon className="h-8 w-8 mx-auto mb-3 text-primary" />
-                        <h3 className="font-semibold mb-2">{type.name}</h3>
-                        <p className="text-sm text-muted-foreground mb-3">{type.description}</p>
-                        <Badge variant="outline">Min: {formatCurrency(type.minValue.toString())}</Badge>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Vehicle Information</h2>
+              <p className="text-muted-foreground">Enter the basic details of your vehicle</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="assetName">Asset Name</Label>
-                <Input
-                  id="assetName"
-                  placeholder="e.g., Luxury Apartment NYC"
-                  value={formData.assetName}
-                  onChange={(e) => updateFormData('assetName', e.target.value)}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="make">Make</Label>
+                <Input 
+                  id="make"
+                  value={formData.vehicleInfo.make}
+                  onChange={(e) => updateFormData('vehicleInfo', 'make', e.target.value)}
+                  placeholder="e.g., Ford, BMW, Mercedes"
                 />
               </div>
-              <div>
+
+              <div className="space-y-2">
+                <Label htmlFor="model">Model</Label>
+                <Input 
+                  id="model"
+                  value={formData.vehicleInfo.model}
+                  onChange={(e) => updateFormData('vehicleInfo', 'model', e.target.value)}
+                  placeholder="e.g., Mustang, M3, S-Class"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="year">Year</Label>
+                <Input 
+                  id="year"
+                  value={formData.vehicleInfo.year}
+                  onChange={(e) => updateFormData('vehicleInfo', 'year', e.target.value)}
+                  placeholder="e.g., 1967"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="vin">VIN Number</Label>
+                <Input 
+                  id="vin"
+                  value={formData.vehicleInfo.vin}
+                  onChange={(e) => updateFormData('vehicleInfo', 'vin', e.target.value)}
+                  placeholder="Vehicle Identification Number"
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
-                <Input
+                <Input 
                   id="location"
-                  placeholder="e.g., Manhattan, New York"
-                  value={formData.location}
-                  onChange={(e) => updateFormData('location', e.target.value)}
+                  value={formData.vehicleInfo.location}
+                  onChange={(e) => updateFormData('vehicleInfo', 'location', e.target.value)}
+                  placeholder="Current location of the vehicle"
                 />
               </div>
-            </div>
-
-            <div>
-              <Label htmlFor="description">Asset Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Detailed description of your asset, its features, and investment potential..."
-                value={formData.description}
-                onChange={(e) => updateFormData('description', e.target.value)}
-                className="min-h-24"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="totalValue">Total Asset Value (USD)</Label>
-              <Input
-                id="totalValue"
-                type="number"
-                placeholder="2500000"
-                value={formData.totalValue}
-                onChange={(e) => updateFormData('totalValue', e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Based on professional appraisal or market valuation
-              </p>
             </div>
           </div>
         );
@@ -231,189 +224,113 @@ export default function TokenizePage() {
       case 2:
         return (
           <div className="space-y-6">
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                All documents must be notarized and verified by our legal team before tokenization approval.
-              </AlertDescription>
-            </Alert>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Technical Details</h2>
+              <p className="text-muted-foreground">Provide detailed technical information about the vehicle</p>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Ownership Proof
-                  </CardTitle>
-                  <CardDescription>
-                    Property deed, title, or ownership certificate
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground mb-2">Upload PDF or image</p>
-                    <Button variant="outline" size="sm">
-                      Choose File
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="mileage">Mileage</Label>
+                <Input 
+                  id="mileage"
+                  value={formData.technicalDetails.mileage}
+                  onChange={(e) => updateFormData('technicalDetails', 'mileage', e.target.value)}
+                  placeholder="Current mileage"
+                />
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calculator className="h-5 w-5" />
-                    Professional Valuation
-                  </CardTitle>
-                  <CardDescription>
-                    Official appraisal from certified assessor
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground mb-2">Upload appraisal report</p>
-                    <Button variant="outline" size="sm">
-                      Choose File
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="space-y-2">
+                <Label htmlFor="condition">Condition</Label>
+                <Input 
+                  id="condition"
+                  value={formData.technicalDetails.condition}
+                  onChange={(e) => updateFormData('technicalDetails', 'condition', e.target.value)}
+                  placeholder="Overall condition"
+                />
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="h-5 w-5" />
-                    Insurance Documentation
-                  </CardTitle>
-                  <CardDescription>
-                    Current insurance policy and coverage details
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground mb-2">Upload insurance policy</p>
-                    <Button variant="outline" size="sm">
-                      Choose File
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="space-y-2">
+                <Label htmlFor="lastService">Last Service Date</Label>
+                <Input 
+                  id="lastService"
+                  type="date"
+                  value={formData.technicalDetails.lastService}
+                  onChange={(e) => updateFormData('technicalDetails', 'lastService', e.target.value)}
+                />
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Briefcase className="h-5 w-5" />
-                    Additional Documents
-                  </CardTitle>
-                  <CardDescription>
-                    Any other relevant legal or financial documents
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                    <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                    <p className="text-sm text-muted-foreground mb-2">Optional documents</p>
-                    <Button variant="outline" size="sm">
-                      Choose Files
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="space-y-2">
+                <Label htmlFor="specifications">Technical Specifications</Label>
+                <Textarea 
+                  id="specifications"
+                  value={formData.technicalDetails.specifications}
+                  onChange={(e) => updateFormData('technicalDetails', 'specifications', e.target.value)}
+                  placeholder="Engine details, transmission, special features, etc."
+                  rows={4}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="modifications">Modifications</Label>
+                <Textarea 
+                  id="modifications"
+                  value={formData.technicalDetails.modifications}
+                  onChange={(e) => updateFormData('technicalDetails', 'modifications', e.target.value)}
+                  placeholder="List any modifications or upgrades"
+                  rows={4}
+                />
+              </div>
             </div>
           </div>
         );
 
       case 3:
-        const tokenomics = calculateTokenomics();
         return (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="tokenSymbol">Token Symbol</Label>
-                <Input
-                  id="tokenSymbol"
-                  placeholder="e.g., LAPT"
-                  value={formData.tokenSymbol}
-                  onChange={(e) => updateFormData('tokenSymbol', e.target.value.toUpperCase())}
-                  maxLength={5}
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  3-5 character unique identifier
-                </p>
-              </div>
-              <div>
-                <Label htmlFor="totalSupply">Total Token Supply</Label>
-                <Input
-                  id="totalSupply"
-                  type="number"
-                  placeholder="1000000"
-                  value={formData.totalSupply}
-                  onChange={(e) => updateFormData('totalSupply', e.target.value)}
-                />
-              </div>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Documentation</h2>
+              <p className="text-muted-foreground">Upload required documentation and photos</p>
             </div>
 
-            <div>
-              <Label htmlFor="minInvestment">Minimum Investment (USD)</Label>
-              <Input
-                id="minInvestment"
-                type="number"
-                placeholder="250"
-                value={formData.minInvestment}
-                onChange={(e) => updateFormData('minInvestment', e.target.value)}
-              />
-            </div>
-
-            {tokenomics && (
-              <Card className="bg-muted/50">
+            <div className="space-y-4">
+              <Card>
                 <CardHeader>
-                  <CardTitle>Calculated Tokenomics</CardTitle>
+                  <CardTitle>Required Documents</CardTitle>
+                  <CardDescription>Please upload the following documents in PDF format</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Price Per Token</p>
-                      <p className="text-2xl font-bold">${tokenomics.pricePerToken}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Market Cap</p>
-                      <p className="text-2xl font-bold">{formatCurrency(tokenomics.marketCap.toString())}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Min Investment Tokens</p>
-                      <p className="text-2xl font-bold">{tokenomics.minInvestmentTokens.toLocaleString()}</p>
-                    </div>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Vehicle Registration</Label>
+                    <Input type="file" accept=".pdf" onChange={(e) => updateFormData('documentation', 'registrationDoc', e.target.files?.[0])} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Insurance Documents</Label>
+                    <Input type="file" accept=".pdf" onChange={(e) => updateFormData('documentation', 'insuranceDoc', e.target.files?.[0])} />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Service History</Label>
+                    <Input type="file" accept=".pdf" onChange={(e) => updateFormData('documentation', 'serviceHistory', e.target.files?.[0])} />
                   </div>
                 </CardContent>
               </Card>
-            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="fundingGoal">Funding Goal (USD)</Label>
-                <Input
-                  id="fundingGoal"
-                  type="number"
-                  placeholder="1000000"
-                  value={formData.fundingGoal}
-                  onChange={(e) => updateFormData('fundingGoal', e.target.value)}
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  Target amount to raise from investors
-                </p>
-              </div>
-              <div>
-                <Label htmlFor="fundingDeadline">Funding Deadline</Label>
-                <Input
-                  id="fundingDeadline"
-                  type="date"
-                  value={formData.fundingDeadline}
-                  onChange={(e) => updateFormData('fundingDeadline', e.target.value)}
-                />
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Vehicle Photos</CardTitle>
+                  <CardDescription>Upload high-quality photos of your vehicle (max 10)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Input 
+                    type="file" 
+                    accept="image/*" 
+                    multiple 
+                    onChange={(e) => updateFormData('documentation', 'photos', Array.from(e.target.files || []))} 
+                  />
+                </CardContent>
+              </Card>
             </div>
           </div>
         );
@@ -421,133 +338,160 @@ export default function TokenizePage() {
       case 4:
         return (
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Investor Requirements</CardTitle>
-                <CardDescription>
-                  Set compliance requirements for token holders
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>KYC Verification Required</Label>
-                    <p className="text-sm text-muted-foreground">All investors must complete identity verification</p>
-                  </div>
-                  <Button
-                    variant={formData.kycRequired ? "default" : "outline"}
-                    onClick={() => updateFormData('kycRequired', !formData.kycRequired)}
-                  >
-                    {formData.kycRequired ? 'Required' : 'Optional'}
-                  </Button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Accredited Investors Only</Label>
-                    <p className="text-sm text-muted-foreground">Restrict to accredited investors (higher income/net worth)</p>
-                  </div>
-                  <Button
-                    variant={formData.accreditedOnly ? "default" : "outline"}
-                    onClick={() => updateFormData('accreditedOnly', !formData.accreditedOnly)}
-                  >
-                    {formData.accreditedOnly ? 'Required' : 'Open to All'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div>
-              <Label htmlFor="jurisdictionRestrictions">Jurisdiction Restrictions</Label>
-              <Textarea
-                id="jurisdictionRestrictions"
-                placeholder="e.g., US residents only, excluding OFAC sanctioned countries..."
-                value={formData.jurisdictionRestrictions}
-                onChange={(e) => updateFormData('jurisdictionRestrictions', e.target.value)}
-              />
-              <p className="text-sm text-muted-foreground mt-1">
-                Specify any geographic restrictions for token holders
-              </p>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Token Economics</h2>
+              <p className="text-muted-foreground">Configure the tokenization parameters</p>
             </div>
 
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Our legal team will review these settings to ensure regulatory compliance in relevant jurisdictions.
-              </AlertDescription>
-            </Alert>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="totalValue">Total Asset Value (USD)</Label>
+                <Input 
+                  id="totalValue"
+                  type="number"
+                  value={formData.tokenEconomics.totalValue}
+                  onChange={(e) => updateFormData('tokenEconomics', 'totalValue', e.target.value)}
+                  placeholder="e.g., 100000"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tokenSupply">Total Token Supply</Label>
+                <Input 
+                  id="tokenSupply"
+                  type="number"
+                  value={formData.tokenEconomics.tokenSupply}
+                  onChange={(e) => updateFormData('tokenEconomics', 'tokenSupply', e.target.value)}
+                  placeholder="e.g., 1000000"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pricePerToken">Price per Token (USD)</Label>
+                <Input 
+                  id="pricePerToken"
+                  type="number"
+                  value={formData.tokenEconomics.pricePerToken}
+                  onChange={(e) => updateFormData('tokenEconomics', 'pricePerToken', e.target.value)}
+                  placeholder="e.g., 0.10"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="minimumInvestment">Minimum Investment (USD)</Label>
+                <Input 
+                  id="minimumInvestment"
+                  type="number"
+                  value={formData.tokenEconomics.minimumInvestment}
+                  onChange={(e) => updateFormData('tokenEconomics', 'minimumInvestment', e.target.value)}
+                  placeholder="e.g., 1000"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tradingLockup">Trading Lockup Period (days)</Label>
+                <Input 
+                  id="tradingLockup"
+                  type="number"
+                  value={formData.tokenEconomics.tradingLockup}
+                  onChange={(e) => updateFormData('tokenEconomics', 'tradingLockup', e.target.value)}
+                  placeholder="e.g., 90"
+                />
+              </div>
+            </div>
           </div>
         );
 
       case 5:
         return (
           <div className="space-y-6">
-            <Alert>
-              <Check className="h-4 w-4" />
-              <AlertDescription>
-                Review all information carefully. Once deployed, some settings cannot be changed.
-              </AlertDescription>
-            </Alert>
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Review & Publish</h2>
+              <p className="text-muted-foreground">Review your vehicle listing before publication</p>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Asset Information</CardTitle>
+                  <CardTitle>Vehicle Information</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Name:</span>
-                    <span className="font-medium">{formData.assetName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Type:</span>
-                    <span className="font-medium">{ASSET_TYPES.find(t => t.id === formData.assetType)?.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Location:</span>
-                    <span className="font-medium">{formData.location}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Value:</span>
-                    <span className="font-medium">{formatCurrency(formData.totalValue)}</span>
-                  </div>
+                <CardContent>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Make</dt>
+                      <dd className="font-medium">{formData.vehicleInfo.make}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Model</dt>
+                      <dd className="font-medium">{formData.vehicleInfo.model}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Year</dt>
+                      <dd className="font-medium">{formData.vehicleInfo.year}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">VIN</dt>
+                      <dd className="font-medium">{formData.vehicleInfo.vin}</dd>
+                    </div>
+                  </dl>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Token Details</CardTitle>
+                  <CardTitle>Technical Details</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Symbol:</span>
-                    <span className="font-medium">{formData.tokenSymbol}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Supply:</span>
-                    <span className="font-medium">{parseFloat(formData.totalSupply).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Price per Token:</span>
-                    <span className="font-medium">${calculateTokenomics()?.pricePerToken}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Min Investment:</span>
-                    <span className="font-medium">{formatCurrency(formData.minInvestment)}</span>
-                  </div>
+                <CardContent>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Mileage</dt>
+                      <dd className="font-medium">{formData.technicalDetails.mileage}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Condition</dt>
+                      <dd className="font-medium">{formData.technicalDetails.condition}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Last Service</dt>
+                      <dd className="font-medium">{formData.technicalDetails.lastService}</dd>
+                    </div>
+                  </dl>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Token Economics</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Total Value</dt>
+                      <dd className="font-medium">${formData.tokenEconomics.totalValue}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Token Supply</dt>
+                      <dd className="font-medium">{formData.tokenEconomics.tokenSupply}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Price per Token</dt>
+                      <dd className="font-medium">${formData.tokenEconomics.pricePerToken}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Minimum Investment</dt>
+                      <dd className="font-medium">${formData.tokenEconomics.minimumInvestment}</dd>
+                    </div>
+                  </dl>
                 </CardContent>
               </Card>
             </div>
 
-            <Card className="bg-primary text-primary-foreground">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-2">Deployment Cost</h3>
-                <div className="text-3xl font-bold mb-2">$2,500 USD</div>
-                <p className="text-sm opacity-90">
-                  Includes smart contract deployment, legal review, compliance setup, and ongoing platform fees for the first year.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="flex justify-center">
+              <Button size="lg" className="w-full md:w-auto">
+                Publish Listing
+                <Check className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
           </div>
         );
 
@@ -556,102 +500,49 @@ export default function TokenizePage() {
     }
   };
 
-  if (!isConnected) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <Card className="max-w-md mx-auto text-center">
-            <CardContent className="p-8">
-              <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-xl font-semibold mb-2">Wallet Required</h2>
-              <p className="text-muted-foreground mb-4">
-                Connect your wallet to start the tokenization process
-              </p>
-              <Button className="w-full">Connect Wallet</Button>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: "url('/backgrnd.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Header />
       <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Header */}
-          <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold">Asset Tokenization</h1>
-            <p className="text-xl text-muted-foreground">
-              Transform your real world asset into tradeable tokens
-            </p>
-          </div>
+        <div className="mb-8 bg-background/80 backdrop-blur-sm p-6 rounded-lg">
+          <h1 className="text-4xl font-bold mb-2">Tokenize Your Vehicle</h1>
+          <p className="text-muted-foreground">Convert your vehicle into blockchain tokens</p>
+        </div>
+        <Card className="max-w-2xl mx-auto bg-background/80 backdrop-blur-sm border-primary/20">
+          <CardContent className="p-6">
+            {renderStep()}
+          </CardContent>
+        </Card>
 
-          {/* Progress Steps */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                {TOKENIZATION_STEPS.map((step, index) => (
-                  <div key={step.id} className="flex items-center">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold ${
-                      currentStep >= step.id 
-                        ? 'bg-primary text-primary-foreground' 
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {currentStep > step.id ? <Check className="h-4 w-4" /> : step.id}
-                    </div>
-                    {index < TOKENIZATION_STEPS.length - 1 && (
-                      <div className={`w-16 h-0.5 mx-2 ${
-                        currentStep > step.id ? 'bg-primary' : 'bg-muted'
-                      }`} />
-                    )}
-                  </div>
-                ))}
-              </div>
-              <Progress value={(currentStep / TOKENIZATION_STEPS.length) * 100} className="mb-2" />
-              <div className="text-center">
-                <h3 className="font-semibold">{TOKENIZATION_STEPS[currentStep - 1].title}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {TOKENIZATION_STEPS[currentStep - 1].description}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Navigation */}
+        <div className="flex justify-between">
+          <Button
+            variant="outline"
+            onClick={() => setStep(step - 1)}
+            disabled={step === 1}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Previous
+          </Button>
 
-          {/* Step Content */}
-          <Card>
-            <CardContent className="p-8">
-              {renderStepContent()}
-            </CardContent>
-          </Card>
-
-          {/* Navigation */}
-          <div className="flex justify-between">
-            <Button 
-              variant="outline" 
-              onClick={prevStep}
-              disabled={currentStep === 1}
+          {step < STEPS.length && (
+            <Button
+              onClick={() => setStep(step + 1)}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Previous
+              Next
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            
-            {currentStep < TOKENIZATION_STEPS.length ? (
-              <Button onClick={nextStep}>
-                Next
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            ) : (
-              <Button className="bg-green-600 hover:bg-green-700">
-                Deploy Token
-                <Coins className="h-4 w-4 ml-2" />
-              </Button>
-            )}
-          </div>
+          )}
         </div>
       </main>
     </div>
   );
-} 
+}

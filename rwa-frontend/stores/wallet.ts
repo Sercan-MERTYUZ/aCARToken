@@ -37,82 +37,42 @@ export const useWalletStore = create<WalletStore>((set, get) => ({
   // Clear error state
   clearError: () => set({ error: null }),
 
-  // Connect to Freighter wallet
+  // Connect wallet
   connect: async () => {
     set({ isLoading: true, error: null });
-    
+
     try {
-      // Check if we're in a browser environment
-      if (typeof window === 'undefined') {
-        throw new Error('Wallet connection only available in browser');
-      }
-
-      // Check if Freighter is installed and connected
-      const connectionResult = await isConnected();
-      
-      if (connectionResult.error) {
-        throw new Error('Freighter wallet not found. Please install Freighter extension.');
-      }
-
-      if (!connectionResult.isConnected) {
-        throw new Error('Freighter is not connected. Please enable the extension.');
-      }
-
-      // Request access to user's public key
       const accessResult = await requestAccess();
-      
-      if (accessResult.error) {
-        throw new Error(accessResult.error);
+      if (!accessResult) {
+        throw new Error('Wallet access denied');
       }
 
-      // Get network information
-      const networkResult = await getNetworkDetails();
-      
-      if (networkResult.error) {
-        throw new Error(networkResult.error);
+      const addressResult = await getAddress();
+      if (addressResult.error || !addressResult.address) {
+        throw new Error('Failed to get wallet address');
       }
-
-      // Map Freighter network names to our format
-      const networkMapping: Record<string, 'testnet' | 'mainnet'> = {
-        'TESTNET': 'testnet',
-        'PUBLIC': 'mainnet',
-        'FUTURENET': 'testnet', // Default futurenet to testnet for our purposes
-        'STANDALONE': 'testnet'
-      };
-
-      const mappedNetwork = networkMapping[networkResult.network] || 'testnet';
-
-      // Mock XLM balance - in production, you'd fetch this from Horizon
-      const mockBalance = '100.0000000';
+      const address = addressResult.address;
+      const networkDetails = await getNetworkDetails();
+      const network = networkDetails.network === 'TESTNET' ? 'testnet' : 'mainnet';
 
       set({
         isConnected: true,
-        address: accessResult.address,
-        publicKey: accessResult.address, // In Stellar, address and public key are the same
-        balance: mockBalance,
-        network: mappedNetwork,
-        isLoading: false,
-        error: null
+        address,
+        network,
+        isLoading: false
       });
 
       // Start watching for wallet changes
       get().startWalletWatcher();
-
-      console.log('Freighter wallet connected successfully:', {
-        address: accessResult.address,
-        network: networkResult.network,
-        networkUrl: networkResult.networkUrl
-      });
-
+      
+      console.log('Wallet connected successfully');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      console.error('Wallet connection failed:', errorMessage);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect wallet';
+      console.error('Wallet connection error:', errorMessage);
       
       set({
         isConnected: false,
         address: null,
-        publicKey: null,
-        balance: '0',
         isLoading: false,
         error: errorMessage
       });
@@ -267,4 +227,4 @@ export const useWalletStore = create<WalletStore>((set, get) => ({
       }
     });
   }
-})); 
+}));

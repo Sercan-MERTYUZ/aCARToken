@@ -7,6 +7,7 @@ export interface AssetMetadata {
   valuation: string; // i128 as string to handle large numbers
   last_valuation_date: number; // u64 timestamp
   legal_doc_hash: string;
+  activeAssets?: number; // Added for dashboard
 }
 
 export interface ComplianceData {
@@ -265,4 +266,4 @@ export interface FinancialsFormData {
   managementFee: string;
   distributionFrequency: 'monthly' | 'quarterly' | 'annually';
   estimatedAppreciation: string;
-} 
+}

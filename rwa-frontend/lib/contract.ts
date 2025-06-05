@@ -1,5 +1,5 @@
 import { AssetMetadata, ComplianceData, ContractInfo } from './types';
-import { RWA_CONTRACT_ID, createSorobanServer, parseContractError } from './stellar';
+import { ACARTOKEN_CONTRACT_ID, createSorobanServer, parseContractError } from './stellar';
 
 // Contract method signatures
 export interface ContractMethods {
@@ -30,7 +30,7 @@ class MockContractClient implements ContractMethods {
   private contractId: string;
   private networkUrl: string;
 
-  constructor(contractId: string = RWA_CONTRACT_ID, network: 'testnet' | 'mainnet' = 'testnet') {
+  constructor(contractId: string = ACARTOKEN_CONTRACT_ID, network: 'testnet' | 'mainnet' = 'testnet') {
     this.contractId = contractId;
     this.networkUrl = createSorobanServer(network);
   }
@@ -271,7 +271,7 @@ class MockContractClient implements ContractMethods {
 
 // Contract client factory
 export const createContractClient = (
-  contractId: string = RWA_CONTRACT_ID,
+  contractId: string = ACARTOKEN_CONTRACT_ID,
   network: 'testnet' | 'mainnet' = 'testnet'
 ): ContractMethods => {
   return new MockContractClient(contractId, network);
@@ -279,7 +279,7 @@ export const createContractClient = (
 
 // Convenience functions for common operations
 export const getContractInfo = async (
-  contractId: string = RWA_CONTRACT_ID,
+  contractId: string = ACARTOKEN_CONTRACT_ID,
   network: 'testnet' | 'mainnet' = 'testnet'
 ): Promise<ContractInfo> => {
   const client = createContractClient(contractId, network);
@@ -302,7 +302,7 @@ export const getContractInfo = async (
 
 export const getUserContractData = async (
   userAddress: string,
-  contractId: string = RWA_CONTRACT_ID,
+  contractId: string = ACARTOKEN_CONTRACT_ID,
   network: 'testnet' | 'mainnet' = 'testnet'
 ) => {
   const client = createContractClient(contractId, network);
@@ -323,7 +323,7 @@ export const getUserContractData = async (
 // Helper for batch operations
 export const batchWhitelistAddresses = async (
   addresses: string[],
-  contractId: string = RWA_CONTRACT_ID,
+  contractId: string = ACARTOKEN_CONTRACT_ID,
   network: 'testnet' | 'mainnet' = 'testnet'
 ): Promise<{ success: string[]; failed: { address: string; error: string }[] }> => {
   const client = createContractClient(contractId, network);

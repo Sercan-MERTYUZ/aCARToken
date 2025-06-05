@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { AssetMetadata, ComplianceData, ContractInfo } from '@/lib/types';
 import { createContractClient, getContractInfo, getUserContractData } from '@/lib/contract';
-import { RWA_CONTRACT_ID } from '@/lib/stellar';
+import { ACARTOKEN_CONTRACT_ID } from '@/lib/stellar';
 
 interface ContractStore {
   // Contract information
@@ -32,7 +32,7 @@ interface ContractStore {
 
 export const useContractStore = create<ContractStore>((set, get) => ({
   // Initial state
-  contractId: RWA_CONTRACT_ID,
+  contractId: ACARTOKEN_CONTRACT_ID,
   assetMetadata: null,
   totalSupply: '0',
   isPaused: false,

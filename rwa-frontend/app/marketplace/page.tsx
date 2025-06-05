@@ -1,26 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useWalletStore } from '@/stores/wallet';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { 
-  Building2, 
   MapPin, 
   TrendingUp, 
   Users,
-  Filter,
   Search,
-  Star,
   Eye,
   ArrowRight,
-  Coins,
-  Shield,
   Clock,
-  DollarSign
+  DollarSign,
+  Car
 } from 'lucide-react';
 import { formatCurrency, formatPercentage } from '@/lib/stellar';
 import Link from 'next/link';
@@ -29,10 +25,10 @@ import Link from 'next/link';
 const marketplaceAssets = [
   {
     id: '1',
-    name: 'Luxury Apartment NYC',
-    location: 'Manhattan, New York',
-    type: 'real_estate',
-    description: 'Premium apartment in Manhattan with high rental yield',
+    name: 'Premium Automotive Collection',
+    location: 'Istanbul, Turkey',
+    type: 'automotive',
+    description: 'Exclusive collection of luxury vehicles with high appreciation potential',
     totalValue: '2500000',
     availableTokens: '1000000',
     pricePerToken: '2.50',
@@ -46,10 +42,10 @@ const marketplaceAssets = [
   },
   {
     id: '2',
-    name: 'Downtown Office Building',
-    location: 'Chicago, Illinois',
-    type: 'real_estate',
-    description: 'Class A commercial office space in downtown Chicago',
+    name: 'Classic Car Portfolio',
+    location: 'London, UK',
+    type: 'automotive',
+    description: 'Curated portfolio of rare classic automobiles with proven track record',
     totalValue: '5000000',
     availableTokens: '2000000',
     pricePerToken: '2.50',
@@ -57,16 +53,16 @@ const marketplaceAssets = [
     riskLevel: 'medium' as const,
     status: 'upcoming' as const,
     images: ['/api/placeholder/400/300'],
-    launchDate: Date.now() + 2592000000, // 30 days from now
+    launchDate: Date.now() + 2592000000,
     investors: 0,
     contractId: null
   },
   {
     id: '3',
-    name: 'Gold Storage Facility',
-    location: 'Delaware, USA',
-    type: 'commodities',
-    description: 'Secure precious metals storage and trading facility',
+    name: 'Performance Vehicle Fund',
+    location: 'Dubai, UAE',
+    type: 'automotive',
+    description: 'High-performance sports cars with strong market demand',
     totalValue: '3000000',
     availableTokens: '1500000',
     pricePerToken: '2.00',
@@ -74,16 +70,16 @@ const marketplaceAssets = [
     riskLevel: 'low' as const,
     status: 'upcoming' as const,
     images: ['/api/placeholder/400/300'],
-    launchDate: Date.now() + 5184000000, // 60 days from now
+    launchDate: Date.now() + 5184000000,
     investors: 0,
     contractId: null
   },
   {
     id: '4',
-    name: 'Renewable Energy Farm',
-    location: 'Texas, USA',
-    type: 'infrastructure',
-    description: 'Solar energy farm with long-term government contracts',
+    name: 'Electric Vehicle Fleet',
+    location: 'Berlin, Germany',
+    type: 'automotive',
+    description: 'Next-generation electric vehicles with sustainable growth potential',
     totalValue: '8000000',
     availableTokens: '4000000',
     pricePerToken: '2.00',
@@ -91,10 +87,25 @@ const marketplaceAssets = [
     riskLevel: 'medium' as const,
     status: 'upcoming' as const,
     images: ['/api/placeholder/400/300'],
-    launchDate: Date.now() + 7776000000, // 90 days from now
+    launchDate: Date.now() + 7776000000,
     investors: 0,
     contractId: null
   }
+];
+
+const assetTypes = [
+  { value: 'all', label: 'All Vehicles' },
+  { value: 'classic', label: 'Classic Cars' },
+  { value: 'luxury', label: 'Luxury Vehicles' },
+  { value: 'performance', label: 'Performance Cars' },
+  { value: 'electric', label: 'Electric Vehicles' }
+];
+
+const statusTypes = [
+  { value: 'all', label: 'All Status' },
+  { value: 'live', label: 'Live' },
+  { value: 'upcoming', label: 'Upcoming' },
+  { value: 'sold_out', label: 'Sold Out' }
 ];
 
 export default function MarketplacePage() {
@@ -102,20 +113,6 @@ export default function MarketplacePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-
-  const assetTypes = [
-    { value: 'all', label: 'All Assets' },
-    { value: 'real_estate', label: 'Real Estate' },
-    { value: 'commodities', label: 'Commodities' },
-    { value: 'infrastructure', label: 'Infrastructure' }
-  ];
-
-  const statusTypes = [
-    { value: 'all', label: 'All Status' },
-    { value: 'live', label: 'Live' },
-    { value: 'upcoming', label: 'Upcoming' },
-    { value: 'sold_out', label: 'Sold Out' }
-  ];
 
   const filteredAssets = marketplaceAssets.filter(asset => {
     const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -153,28 +150,53 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: "url('/backgrnd.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <Header />
       <main className="container mx-auto px-4 py-8">
+        <div className="mb-8 bg-background/80 backdrop-blur-sm p-6 rounded-lg">
+          <h1 className="text-4xl font-bold mb-2">Vehicle Marketplace</h1>
+          <p className="text-muted-foreground">Browse and invest in tokenized vehicles</p>
+        </div>
+
         <div className="space-y-8">
           {/* Page Header */}
-          <div className="space-y-4">
-            <h1 className="text-4xl font-bold">Asset Marketplace</h1>
-            <p className="text-xl text-muted-foreground">
-              Discover tokenized real world assets and start investing today
-            </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold mb-2">Vehicle Marketplace</h1>
+              <p className="text-muted-foreground">Discover and invest in tokenized automotive assets</p>
+            </div>
+            
+            <div className="flex gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search vehicles..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-64 pl-9"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Stats Overview */}
+          {/* Overview Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
-                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">Total Vehicles</CardTitle>
+                <Car className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{marketplaceAssets.length}</div>
-                <p className="text-xs text-muted-foreground">Across multiple sectors</p>
+                <p className="text-xs text-muted-foreground">Tokenized vehicles</p>
               </CardContent>
             </Card>
 
@@ -199,7 +221,11 @@ export default function MarketplacePage() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">8.0%</div>
+                <div className="text-2xl font-bold">
+                  {formatPercentage(
+                    (marketplaceAssets.reduce((sum, asset) => sum + parseFloat(asset.projectedYield), 0) / marketplaceAssets.length).toString()
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">Annual projected return</p>
               </CardContent>
             </Card>
@@ -218,57 +244,10 @@ export default function MarketplacePage() {
             </Card>
           </div>
 
-          {/* Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filter Assets
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search assets by name or location..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex gap-4">
-                  <select 
-                    value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}
-                    className="px-3 py-2 border border-input bg-background rounded-md text-sm"
-                  >
-                    {assetTypes.map(type => (
-                      <option key={type.value} value={type.value}>{type.label}</option>
-                    ))}
-                  </select>
-
-                  <select 
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                    className="px-3 py-2 border border-input bg-background rounded-md text-sm"
-                  >
-                    {statusTypes.map(status => (
-                      <option key={status.value} value={status.value}>{status.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Asset Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAssets.map((asset) => (
-              <Card key={asset.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <Card key={asset.id} className="bg-background/80 backdrop-blur-sm border-primary/20 hover:border-primary/40 transition-colors">
                 <div className="aspect-video bg-muted relative">
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
                   <div className="absolute top-4 right-4 flex gap-2">
@@ -354,9 +333,9 @@ export default function MarketplacePage() {
             <Card className="text-center py-12">
               <CardContent>
                 <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No assets found</h3>
+                <h3 className="text-lg font-semibold mb-2">No vehicles found</h3>
                 <p className="text-muted-foreground mb-4">
-                  Try adjusting your search criteria or browse all available assets.
+                  Try adjusting your search criteria or browse all available vehicles.
                 </p>
                 <Button 
                   onClick={() => {
@@ -377,29 +356,20 @@ export default function MarketplacePage() {
             <CardContent className="p-8 text-center">
               <h2 className="text-2xl font-bold mb-4">Ready to Start Investing?</h2>
               <p className="text-lg opacity-90 mb-6">
-                Join hundreds of investors building wealth through tokenized real world assets
+                Join hundreds of investors building wealth through tokenized vehicles
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {!isConnected ? (
                   <Button size="lg" variant="secondary">
-                    <Shield className="h-5 w-5 mr-2" />
                     Connect Wallet to Start
                   </Button>
                 ) : (
-                  <>
-                    <Button size="lg" variant="secondary" asChild>
-                      <Link href="/transfer">
-                        <Coins className="h-5 w-5 mr-2" />
-                        Start Investing
-                      </Link>
-                    </Button>
-                    <Button size="lg" variant="secondary" asChild>
-                      <Link href="/tokenize">
-                        <Building2 className="h-5 w-5 mr-2" />
-                        Tokenize Asset
-                      </Link>
-                    </Button>
-                  </>
+                  <Button size="lg" variant="secondary" asChild>
+                    <Link href="/transfer">
+                      Start Investing
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
+                  </Button>
                 )}
               </div>
             </CardContent>
@@ -408,4 +378,4 @@ export default function MarketplacePage() {
       </main>
     </div>
   );
-} 
+}

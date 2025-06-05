@@ -1,13 +1,13 @@
-# RWA Investor Frontend
+# aCARtoken Frontend
 
-A professional Next.js application for investing in Real World Asset (RWA) tokens on the Stellar blockchain. This platform enables investors to access tokenized real estate, commodities, and other physical assets through compliant blockchain technology.
+A professional Next.js application for investing in automotive and mobility asset tokens on the Stellar blockchain. This platform enables investors to access tokenized vehicles, classic cars, and mobility solutions through compliant blockchain technology.
 
 ## 🎯 Features
 
 ### **Core Functionality (Phase 1 - Completed)**
-- ✅ **Wallet Integration**: Real Freighter wallet connection with network detection
-- ✅ **Professional Dashboard**: Portfolio overview with asset statistics  
-- ✅ **Token Transfer**: Secure RWA token transfers with compliance validation
+- ✅ **Wallet Integration**: Freighter wallet connection with network detection
+- ✅ **Professional Dashboard**: Vehicle portfolio overview with asset statistics  
+- ✅ **Token Transfer**: Secure vehicle token transfers with compliance validation
 - ✅ **Compliance Tracking**: KYC and whitelist status monitoring
 - ✅ **Smart Contract Integration**: Mock contract client ready for production
 - ✅ **Real-time Updates**: Automatic wallet state monitoring and updates
